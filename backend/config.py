@@ -2,6 +2,7 @@
 
 import os
 from typing import List
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
@@ -10,6 +11,8 @@ load_dotenv()
 
 class Settings(BaseSettings):
     """Application settings."""
+    
+    model_config = ConfigDict(extra='ignore', env_file=".env")
     
     # API Keys
     google_api_key: str = os.getenv("GOOGLE_API_KEY", "")
@@ -55,9 +58,6 @@ class Settings(BaseSettings):
     enable_deep_research: bool = os.getenv("ENABLE_DEEP_RESEARCH", "true").lower() == "true"
     deep_research_threshold: float = float(os.getenv("DEEP_RESEARCH_THRESHOLD", "0.7"))
     tavily_max_results: int = int(os.getenv("TAVILY_MAX_RESULTS", "5"))
-    
-    class Config:
-        env_file = ".env"
 
 
 settings = Settings()
