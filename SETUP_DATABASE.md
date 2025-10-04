@@ -29,7 +29,7 @@ docker-compose ps
 ```
 
 Это создаст:
-- PostgreSQL 15 на порту 5432
+- PostgreSQL 15 на порту **5433** (чтобы не конфликтовать с системным PostgreSQL на 5432)
 - База данных: `finhack`
 - Пользователь: `radar_user`
 - Пароль: `radar_password_2024`

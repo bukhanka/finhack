@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     # Database settings
     database_url: str = os.getenv(
         "DATABASE_URL", 
-        "postgresql+asyncpg://radar_user:radar_password_2024@localhost:5432/finhack"
+        "postgresql+asyncpg://radar_user:radar_password_2024@localhost:5433/finhack"
     )
     
     # Application parameters
