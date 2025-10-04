@@ -16,6 +16,7 @@ import {
   TrendingUp,
   User,
 } from 'lucide-react';
+import { format } from 'date-fns';
 import HotnessMetrics from './HotnessMetrics';
 import HotnessChart from './HotnessChart';
 

@@ -54,7 +54,7 @@ export default function Home() {
     try {
       const result = await radarApi.getLastResult();
       setData(result);
-    } catch (err) {
+    } catch {
       // cached result отсутствует — допустимо
     }
   };
@@ -66,8 +66,13 @@ export default function Home() {
     try {
       const result = await radarApi.processNews(request);
       setData(result);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || 'Не удалось обработать новости');
+    } catch (err: unknown) {
+      const errorMessage = err && typeof err === 'object' && 'response' in err
+        ? (err.response as { data?: { detail?: string } })?.data?.detail || 'Не удалось обработать новости'
+        : err instanceof Error
+        ? err.message
+        : 'Не удалось обработать новости';
+      setError(errorMessage);
       console.error('Error processing news:', err);
     } finally {
       setIsLoading(false);

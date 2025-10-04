@@ -44,7 +44,6 @@ export default function HotnessChart({ hotness }: HotnessChartProps) {
           <PolarAngleAxis dataKey="metric" tick={{ fill: '#cbd5f5', fontSize: 11, letterSpacing: '0.08em' }} stroke="none" />
           <PolarRadiusAxis
             stroke="rgba(148, 163, 184, 0.15)"
-            axisLineType="circle"
             domain={[0, 100]}
             tick={{ fill: 'rgba(148, 163, 184, 0.65)', fontSize: 9 }}
             tickSize={2}
