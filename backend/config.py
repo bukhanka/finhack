@@ -21,6 +21,12 @@ class Settings(BaseSettings):
     tavily_api_key: str = os.getenv("TAVILY_API_KEY", "")
     openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
     
+    # Database settings
+    database_url: str = os.getenv(
+        "DATABASE_URL", 
+        "postgresql+asyncpg://radar_user:radar_password_2024@localhost:5432/finhack"
+    )
+    
     # Application parameters
     news_window_hours: int = int(os.getenv("NEWS_WINDOW_HOURS", "24"))
     top_k_stories: int = int(os.getenv("TOP_K_STORIES", "10"))

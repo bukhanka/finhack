@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from config import settings
 from models import RadarResponse
 from radar import FinancialNewsRadar
+from database import db_manager
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,11 +37,23 @@ app.add_middleware(
 # Initialize RADAR system
 radar = FinancialNewsRadar()
 
-# Cache for last result
+# Cache for last result (in-memory fallback)
 last_result_cache = {
     "result": None,
     "timestamp": None
 }
+
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database on startup."""
+    logger.info("Initializing database...")
+    try:
+        await db_manager.init_async()
+        logger.info("Database initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize database: {e}")
+        # Don't fail startup, just log the error
 
 
 class ProcessRequest(BaseModel):
@@ -102,6 +115,43 @@ async def root():
         .header p {
             font-size: 1.2em;
             opacity: 0.9;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        
+        .tab-button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
         }
         
         .controls {
@@ -358,6 +408,67 @@ async def root():
             display: none;
         }
         
+        .history-list {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .history-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .history-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .history-date {
+            font-weight: 700;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .history-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .history-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        .history-stat {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .history-stat strong {
+            color: #333;
+        }
+        
         .hotness-details {
             background: white;
             border-radius: 6px;
@@ -395,6 +506,12 @@ async def root():
             <p>AI-Powered Hot News Detection & Analysis</p>
         </div>
         
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('scan')">🚀 New Scan</button>
+            <button class="tab-button" onclick="switchTab('history')">📜 History</button>
+        </div>
+        
+        <div id="scanTab" class="tab-content active">
         <div class="controls">
             <h2>⚙️ Configuration</h2>
             <div class="control-group">
@@ -442,9 +559,145 @@ async def root():
             </div>
             <div id="storiesContainer"></div>
         </div>
+        </div>
+        
+        <div id="historyTab" class="tab-content">
+            <div class="history-list">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                    <h2>📜 Processing History</h2>
+                    <button class="btn" onclick="loadHistory()" style="padding: 10px 20px; font-size: 14px;">🔄 Refresh</button>
+                </div>
+                <div id="historyContainer">
+                    <p style="text-align: center; color: #666;">Loading history...</p>
+                </div>
+            </div>
+        </div>
     </div>
     
     <script>
+        // Tab switching
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            if (tabName === 'scan') {
+                document.getElementById('scanTab').classList.add('active');
+            } else if (tabName === 'history') {
+                document.getElementById('historyTab').classList.add('active');
+                loadHistory();
+            }
+        }
+        
+        // Load history on page load
+        window.addEventListener('load', () => {
+            if (document.getElementById('historyTab').classList.contains('active')) {
+                loadHistory();
+            }
+        });
+        
+        async function loadHistory() {
+            const container = document.getElementById('historyContainer');
+            container.innerHTML = '<p style="text-align: center; color: #666;">Loading history...</p>';
+            
+            try {
+                const response = await fetch('/api/history?limit=20');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const data = await response.json();
+                displayHistory(data.history);
+            } catch (error) {
+                console.error('Error loading history:', error);
+                container.innerHTML = `<p style="text-align: center; color: #c53030;">Error loading history: ${error.message}</p>`;
+            }
+        }
+        
+        function displayHistory(history) {
+            const container = document.getElementById('historyContainer');
+            
+            if (!history || history.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">No processing history yet. Run a scan to create history.</p>';
+                return;
+            }
+            
+            container.innerHTML = history.map(item => {
+                const date = new Date(item.created_at);
+                const formattedDate = date.toLocaleString('ru-RU', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                return `
+                    <div class="history-item" onclick="loadHistoryDetails(${item.id})">
+                        <div class="history-header">
+                            <div class="history-date">${formattedDate}</div>
+                            <div class="history-badge">${item.story_count} stories</div>
+                        </div>
+                        <div class="history-stats">
+                            <div class="history-stat">
+                                <strong>Articles:</strong> <span>${item.total_articles_processed}</span>
+                            </div>
+                            <div class="history-stat">
+                                <strong>Time Window:</strong> <span>${item.time_window_hours}h</span>
+                            </div>
+                            <div class="history-stat">
+                                <strong>Processing:</strong> <span>${Math.round(item.processing_time_seconds)}s</span>
+                            </div>
+                            <div class="history-stat">
+                                <strong>Threshold:</strong> <span>${(item.hotness_threshold * 100).toFixed(0)}%</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        async function loadHistoryDetails(runId) {
+            // Show loading in results
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('results').classList.add('hidden');
+            document.getElementById('error').classList.add('hidden');
+            
+            // Switch to scan tab to show results
+            switchTab('scan');
+            document.querySelectorAll('.tab-button')[0].classList.add('active');
+            
+            try {
+                const response = await fetch(`/api/history/${runId}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const data = await response.json();
+                
+                // Transform data to match current format
+                const transformedData = {
+                    stories: data.stories,
+                    total_articles_processed: data.total_articles_processed,
+                    processing_time_seconds: data.processing_time_seconds,
+                    time_window_hours: data.time_window_hours
+                };
+                
+                displayResults(transformedData);
+                
+            } catch (error) {
+                console.error('Error loading history details:', error);
+                document.getElementById('error').textContent = `Error: ${error.message}`;
+                document.getElementById('error').classList.remove('hidden');
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+    
+    
         async function processNews() {
             const timeWindow = document.getElementById('timeWindow').value;
             const topK = document.getElementById('topK').value;
@@ -625,9 +878,25 @@ async def process_news(request: ProcessRequest):
             custom_feeds=request.custom_feeds
         )
         
-        # Cache result
+        # Cache result in memory
         last_result_cache["result"] = result
         last_result_cache["timestamp"] = result.generated_at
+        
+        # Save to database
+        try:
+            stories_data = [story.model_dump() for story in result.stories]
+            run_id = await db_manager.save_radar_result(
+                stories=stories_data,
+                total_articles_processed=result.total_articles_processed,
+                time_window_hours=result.time_window_hours,
+                processing_time_seconds=result.processing_time_seconds,
+                hotness_threshold=request.hotness_threshold,
+                top_k=request.top_k
+            )
+            logger.info(f"Saved radar result to database with ID: {run_id}")
+        except Exception as db_error:
+            logger.error(f"Failed to save to database: {db_error}", exc_info=True)
+            # Continue even if DB save fails
         
         return result
         
@@ -643,6 +912,73 @@ async def get_last_result():
         raise HTTPException(status_code=404, detail="No results available yet")
     
     return last_result_cache["result"]
+
+
+@app.get("/api/history")
+async def get_history(
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0)
+):
+    """
+    Get radar processing history.
+    
+    Args:
+        limit: Maximum number of results (1-100)
+        offset: Offset for pagination
+        
+    Returns:
+        List of radar runs with metadata
+    """
+    try:
+        history = await db_manager.get_radar_history(limit=limit, offset=offset)
+        return {"history": history, "limit": limit, "offset": offset}
+    except Exception as e:
+        logger.error(f"Error fetching history: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/history/{run_id}")
+async def get_run_details(run_id: int):
+    """
+    Get detailed information about a specific radar run.
+    
+    Args:
+        run_id: Radar run ID
+        
+    Returns:
+        Radar run with all stories
+    """
+    try:
+        details = await db_manager.get_radar_run_details(run_id)
+        
+        if details is None:
+            raise HTTPException(status_code=404, detail=f"Radar run {run_id} not found")
+        
+        return details
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching run details: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/history/cleanup")
+async def cleanup_old_runs(keep_last_n: int = Query(100, ge=10, le=500)):
+    """
+    Delete old radar runs, keeping only the last N runs.
+    
+    Args:
+        keep_last_n: Number of recent runs to keep (10-500)
+        
+    Returns:
+        Success message
+    """
+    try:
+        await db_manager.delete_old_runs(keep_last_n=keep_last_n)
+        return {"message": f"Cleaned up old runs, kept last {keep_last_n}"}
+    except Exception as e:
+        logger.error(f"Error cleaning up old runs: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":
