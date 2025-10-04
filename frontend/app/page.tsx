@@ -1,13 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { radarApi } from '@/lib/api';
-import { RadarResponse, ProcessRequest } from '@/lib/types';
+import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Activity, AlertCircle, LineChart, ShieldCheck, Sparkle } from 'lucide-react';
 import ControlPanel from '@/components/ControlPanel';
 import StoryCard from '@/components/StoryCard';
 import StatsDisplay from '@/components/StatsDisplay';
-import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, Radar, Activity } from 'lucide-react';
+import MoneyBackground from '@/components/MoneyBackground';
+import { radarApi } from '@/lib/api';
+import { ProcessRequest, RadarResponse } from '@/lib/types';
+
+const heroHighlights = [
+  {
+    title: 'Многомерный скоринг',
+    copy: 'Неожиданность, материальность, скорость, охват и достоверность — единая шкала приоритизации.',
+  },
+  {
+    title: 'Интеллектуальное исследование',
+    copy: 'Автоматический deep research для приоритетных сюжетов с расширенной ссылочной базой.',
+  },
+  {
+    title: 'Премиальные черновики',
+    copy: 'Структурированные тексты с атрибуцией и рыночным контекстом, готовые к коммуникациям.',
+  },
+];
 
 export default function Home() {
   const [data, setData] = useState<RadarResponse | null>(null);
@@ -15,11 +31,13 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [isHealthy, setIsHealthy] = useState(false);
 
-  // Check backend health on mount
   useEffect(() => {
-    checkHealth();
-    // Try to load last result
-    loadLastResult();
+    const init = async () => {
+      await checkHealth();
+      await loadLastResult();
+    };
+
+    init();
   }, []);
 
   const checkHealth = async () => {
@@ -37,8 +55,7 @@ export default function Home() {
       const result = await radarApi.getLastResult();
       setData(result);
     } catch (err) {
-      // No cached results, that's ok
-      console.log('No cached results available');
+      // cached result отсутствует — допустимо
     }
   };
 
@@ -50,176 +67,181 @@ export default function Home() {
       const result = await radarApi.processNews(request);
       setData(result);
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || 'Failed to process news');
+      setError(err.response?.data?.detail || err.message || 'Не удалось обработать новости');
       console.error('Error processing news:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const avgHotness = data 
-    ? data.stories.reduce((sum, story) => sum + story.hotness, 0) / data.stories.length 
+  const avgHotness = data
+    ? data.stories.reduce((sum, story) => sum + story.hotness, 0) / data.stories.length
     : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-blue-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-lg border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="bg-gradient-to-br from-purple-600 to-blue-600 p-3 rounded-xl shadow-lg">
-                <Radar className="text-white" size={32} />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  Финансовый Новостной РАДАР
-                </h1>
-                <p className="text-gray-600 text-sm font-medium">
-                  ИИ-анализ и выявление горячих новостей
-                </p>
-              </div>
+    <div className="relative min-h-screen overflow-hidden bg-[#05070f] text-slate-100">
+      <MoneyBackground />
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <div className="absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(circle_at_top,rgba(14,116,144,0.35)_0%,rgba(5,7,15,0.4)_55%,rgba(5,7,15,0)_100%)]" />
+        <div className="absolute -left-20 top-44 h-72 w-72 rounded-full bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-transparent blur-3xl" />
+        <div className="absolute right-0 top-64 h-96 w-96 rounded-full bg-gradient-to-br from-indigo-600/10 via-purple-500/10 to-transparent blur-3xl" />
+      </div>
+
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#05070f]/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 lg:px-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 shadow-lg shadow-cyan-500/25">
+              <LineChart className="h-6 w-6 text-white" />
             </div>
-            <div className="flex items-center gap-2">
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-xl ${
-                isHealthy ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-              }`}>
-                <Activity size={16} />
-                <span className="text-sm font-semibold">
-                  {isHealthy ? 'Сервер онлайн' : 'Сервер офлайн'}
-                </span>
-              </div>
+            <div>
+              <h1 className="text-sm font-semibold uppercase tracking-[0.32em] text-slate-200">Radar Intelligence</h1>
+              <p className="text-xs text-slate-400">Финансовый мониторинг горячих событий</p>
             </div>
+          </div>
+          <div
+            className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-slate-300 ${
+              isHealthy ? 'border-emerald-500/40 text-emerald-300' : 'border-rose-500/40 text-rose-300'
+            }`}
+          >
+            <Activity className="h-3.5 w-3.5" />
+            {isHealthy ? 'Backend Online' : 'Backend Offline'}
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
-          {/* Control Panel */}
-          <ControlPanel onScan={handleScan} isLoading={isLoading} />
-
-          {/* Error Display */}
-          <AnimatePresence>
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="bg-red-50 border-2 border-red-200 rounded-2xl p-6"
-              >
-                <div className="flex items-start gap-4">
-                  <AlertCircle className="text-red-600 flex-shrink-0" size={24} />
-                  <div>
-                    <h3 className="font-bold text-red-900 mb-1">Ошибка</h3>
-                    <p className="text-red-700">{error}</p>
-                  </div>
+      <main className="relative mx-auto max-w-6xl px-4 pb-20 lg:px-8">
+        <section className="grid gap-12 py-16 lg:grid-cols-[1.2fr,0.8fr] lg:items-center">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="space-y-8"
+          >
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[0.7rem] uppercase tracking-[0.35em] text-slate-300">
+              <ShieldCheck className="h-4 w-4 text-cyan-300" />
+              Контроль достоверности • Таймлайн подтверждений
+            </div>
+            <div className="space-y-4">
+              <h2 className="text-4xl font-semibold leading-tight text-slate-50 md:text-5xl">
+                Финансовый радар для мгновенной оценки рыночных событий
+              </h2>
+              <p className="max-w-xl text-lg text-slate-400">
+                Получайте отфильтрованные горячие сюжеты, прозрачную аналитику по пяти критериям «горячести» и готовые к публикации материалы в тональности инвестиционных банков.
+              </p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              {heroHighlights.map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/8 via-slate-900/25 to-slate-900/45 p-5 backdrop-blur-sm"
+                >
+                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200">{item.title}</h3>
+                  <p className="text-sm text-slate-400">{item.copy}</p>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              ))}
+            </div>
+          </motion.div>
 
-          {/* Stats */}
-          {data && (
+          <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="relative"
+          >
+            <div className="absolute inset-0 -z-10 rounded-3xl bg-gradient-to-br from-cyan-500/25 via-blue-500/10 to-transparent blur-2xl" />
+            <ControlPanel onScan={handleScan} isLoading={isLoading} />
+          </motion.div>
+        </section>
+
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              className="mb-12 rounded-2xl border border-rose-500/40 bg-rose-950/60 p-6 text-sm text-rose-200 backdrop-blur"
+            >
+              <div className="flex items-start gap-3">
+                <AlertCircle className="mt-0.5 h-5 w-5 text-rose-300" />
+                <div>
+                  <p className="font-semibold uppercase tracking-[0.28em] text-rose-200/80">Ошибка обработки</p>
+                  <p className="mt-1 text-rose-100/80">{error}</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {data ? (
+          <section className="space-y-12">
             <StatsDisplay
               storyCount={data.stories.length}
               articleCount={data.total_articles_processed}
               processingTime={data.processing_time_seconds}
               avgHotness={avgHotness}
             />
-          )}
 
-          {/* Results */}
-          {data && data.stories.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-3xl font-bold text-gray-900">
-                  🔥 Горячие новости
-                </h2>
-                <div className="text-sm text-gray-600">
-                  Создано: {new Date(data.generated_at).toLocaleString('ru-RU')}
+            {data.stories.length > 0 ? (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+                <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-2xl font-semibold text-slate-100">Лента горячих сюжетов</h3>
+                    <p className="text-sm text-slate-500">
+                      Сформировано {new Date(data.generated_at).toLocaleString('ru-RU')} • приоритет по интегральному scoringu
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.35em] text-slate-300">
+                    <Sparkle className="h-3.5 w-3.5 text-cyan-300" />
+                    {data.total_articles_processed} источников обработано
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-6">
-                {data.stories.map((story, index) => (
-                  <StoryCard key={story.id} story={story} index={index} />
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* Empty State */}
-          {data && data.stories.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-2xl shadow-lg p-12 text-center"
+                <div className="space-y-10">
+                  {data.stories.map((story, index) => (
+                    <StoryCard key={story.id} story={story} index={index} />
+                  ))}
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-3xl border border-white/10 bg-white/5 p-12 text-center backdrop-blur"
+              >
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/10">
+                  <LineChart className="h-7 w-7 text-slate-300" />
+                </div>
+                <h4 className="text-xl font-medium text-slate-100">Горячие сюжеты не обнаружены</h4>
+                <p className="mt-3 text-sm text-slate-400">
+                  Расширьте временное окно или снизьте порог горячести, чтобы увидеть более широкий спектр новостей.
+                </p>
+              </motion.div>
+            )}
+          </section>
+        ) : (
+          !isLoading && (
+            <motion.section
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-12 text-center backdrop-blur"
             >
-              <div className="inline-block bg-gray-100 p-6 rounded-full mb-4">
-                <Radar className="text-gray-400" size={48} />
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/10">
+                <ShieldCheck className="h-7 w-7 text-cyan-300" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                Горячих новостей не найдено
-              </h3>
-              <p className="text-gray-600">
-                Попробуйте изменить временное окно или понизить порог горячести
+              <h3 className="text-2xl font-semibold text-slate-100">Эталонный мониторинг готов к запуску</h3>
+              <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400">
+                Настройте параметры сканирования справа, чтобы получить отранжированные события, детализированный таймлайн и готовые к коммуникациям материалы.
               </p>
-            </motion.div>
-          )}
-
-          {/* Initial State */}
-          {!data && !isLoading && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white rounded-2xl shadow-lg p-12 text-center border-2 border-dashed border-gray-300"
-            >
-              <div className="inline-block bg-gradient-to-br from-purple-100 to-blue-100 p-6 rounded-full mb-4">
-                <Radar className="text-purple-600" size={48} />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                Готов к сканированию
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Настройте параметры выше и нажмите "Сканировать новости"
-              </p>
-              <div className="grid md:grid-cols-3 gap-4 text-left max-w-2xl mx-auto">
-                <div className="bg-purple-50 rounded-xl p-4">
-                  <div className="font-bold text-purple-900 mb-1">📊 Многомерный анализ</div>
-                  <div className="text-sm text-purple-700">
-                    5 метрик: неожиданность, значимость, скорость, охват, достоверность
-                  </div>
-                </div>
-                <div className="bg-blue-50 rounded-xl p-4">
-                  <div className="font-bold text-blue-900 mb-1">🔍 Глубокое исследование</div>
-                  <div className="text-sm text-blue-700">
-                    ИИ-анализ с использованием 20+ источников для горячих новостей
-                  </div>
-                </div>
-                <div className="bg-green-50 rounded-xl p-4">
-                  <div className="font-bold text-green-900 mb-1">✅ Проверено</div>
-                  <div className="text-sm text-green-700">
-                    Отслеживание таймлайна с указанием источников
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </div>
+            </motion.section>
+          )
+        )}
       </main>
 
-      {/* Footer */}
-      <footer className="mt-16 py-8 bg-white/50 backdrop-blur-lg border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-600">
-          <p className="text-sm">
-            Финансовый Новостной РАДАР v2.0 • На базе Gemini 2.0, GPT Researcher & Tavily
-          </p>
+      <footer className="border-t border-white/10 bg-[#05070f]/80 py-10 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 text-[0.65rem] uppercase tracking-[0.32em] text-slate-500 lg:px-8">
+          <span>Radar Intelligence Platform</span>
+          <span className="text-slate-600">Gemini • GPT Researcher • Tavily Orchestration</span>
         </div>
       </footer>
     </div>

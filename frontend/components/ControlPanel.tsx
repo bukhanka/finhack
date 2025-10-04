@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ProcessRequest } from '@/lib/types';
-import { Settings, Zap } from 'lucide-react';
+import { Gauge, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface ControlPanelProps {
@@ -25,98 +25,92 @@ export default function ControlPanel({ onScan, isLoading }: ControlPanelProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100"
+      className="rounded-3xl border border-white/10 bg-[#0b111d]/80 p-8 text-slate-100 shadow-[0_25px_80px_-40px_rgba(14,116,144,0.6)] backdrop-blur"
     >
-      <div className="flex items-center gap-3 mb-6">
-        <div className="bg-gradient-to-br from-purple-600 to-blue-600 p-3 rounded-xl">
-          <Settings className="text-white" size={24} />
+      <div className="mb-6 flex items-center gap-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 shadow-lg shadow-cyan-500/30">
+          <Gauge className="h-5 w-5 text-white" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Настройки</h2>
-          <p className="text-gray-600 text-sm">Параметры сканирования новостей</p>
+          <h2 className="text-lg font-semibold uppercase tracking-[0.35em] text-slate-200">Сценарий сканирования</h2>
+          <p className="text-xs text-slate-500">Точное управление окном, глубиной и фильтрацией горячести</p>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6 mb-6">
-        <div className="space-y-2">
-          <label className="block text-sm font-semibold text-gray-700">
-            Временное окно
-          </label>
-          <div className="relative">
-            <input
-              type="number"
-              value={timeWindow}
-              onChange={(e) => setTimeWindow(Number(e.target.value))}
-              min={1}
-              max={168}
-              className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition-colors font-semibold"
-            />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">
-              часов
-            </span>
+      <div className="grid gap-5 md:grid-cols-3">
+        <label className="space-y-2 text-xs uppercase tracking-[0.28em] text-slate-400">
+          <span>Временное окно</span>
+          <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-slate-100 transition-all focus-within:border-cyan-400/60">
+            <div className="flex items-center justify-between text-sm font-medium">
+              <input
+                type="number"
+                value={timeWindow}
+                onChange={(e) => setTimeWindow(Number(e.target.value))}
+                min={1}
+                max={168}
+                className="w-full bg-transparent text-base font-semibold tracking-tight text-slate-100 outline-none"
+              />
+              <span className="text-xs text-slate-400">часов</span>
+            </div>
           </div>
-          <p className="text-xs text-gray-500">Последние 1-168 часов</p>
-        </div>
+          <span className="block text-[0.65rem] normal-case tracking-normal text-slate-500">Диапазон 1–168, default 24</span>
+        </label>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-semibold text-gray-700">
-            Топ новостей
-          </label>
-          <div className="relative">
-            <input
-              type="number"
-              value={topK}
-              onChange={(e) => setTopK(Number(e.target.value))}
-              min={1}
-              max={50}
-              className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition-colors font-semibold"
-            />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">
-              новостей
-            </span>
+        <label className="space-y-2 text-xs uppercase tracking-[0.28em] text-slate-400">
+          <span>Топ сюжетов</span>
+          <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-slate-100 transition-all focus-within:border-cyan-400/60">
+            <div className="flex items-center justify-between text-sm font-medium">
+              <input
+                type="number"
+                value={topK}
+                onChange={(e) => setTopK(Number(e.target.value))}
+                min={1}
+                max={50}
+                className="w-full bg-transparent text-base font-semibold tracking-tight text-slate-100 outline-none"
+              />
+              <span className="text-xs text-slate-400">сюжетов</span>
+            </div>
           </div>
-          <p className="text-xs text-gray-500">Количество результатов</p>
-        </div>
+          <span className="block text-[0.65rem] normal-case tracking-normal text-slate-500">Количество кластеров на вывод</span>
+        </label>
 
-        <div className="space-y-2">
-          <label className="block text-sm font-semibold text-gray-700">
-            Порог горячести
-          </label>
-          <div className="relative">
-            <input
-              type="number"
-              value={threshold}
-              onChange={(e) => setThreshold(Number(e.target.value))}
-              min={0}
-              max={1}
-              step={0.1}
-              className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition-colors font-semibold"
-            />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">
-              / 1.0
-            </span>
+        <label className="space-y-2 text-xs uppercase tracking-[0.28em] text-slate-400">
+          <span>Порог горячести</span>
+          <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-slate-100 transition-all focus-within:border-cyan-400/60">
+            <div className="flex items-center justify-between text-sm font-medium">
+              <input
+                type="number"
+                value={threshold}
+                onChange={(e) => setThreshold(Number(e.target.value))}
+                min={0}
+                max={1}
+                step={0.1}
+                className="w-full bg-transparent text-base font-semibold tracking-tight text-slate-100 outline-none"
+              />
+              <span className="text-xs text-slate-400">/ 1.0</span>
+            </div>
           </div>
-          <p className="text-xs text-gray-500">Минимальный балл</p>
-        </div>
+          <span className="block text-[0.65rem] normal-case tracking-normal text-slate-500">Минимальный интегральный score</span>
+        </label>
       </div>
 
       <button
         onClick={handleScan}
         disabled={isLoading}
-        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:from-purple-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3 shadow-lg hover:shadow-xl"
+        className="mt-8 flex w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-600 py-4 text-sm font-semibold uppercase tracking-[0.35em] text-white shadow-lg shadow-cyan-500/30 transition-all hover:shadow-cyan-500/40 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isLoading ? (
           <>
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-            Сканирование новостей...
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            Обработка...
           </>
         ) : (
           <>
-            <Zap size={24} />
-            Сканировать новости
+            <Zap className="h-5 w-5" />
+            Старт сканирования
           </>
         )}
       </button>

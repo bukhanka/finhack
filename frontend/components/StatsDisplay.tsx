@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Newspaper, TrendingUp, Clock, Zap } from 'lucide-react';
+import { Clock, Layers, LineChart, Zap } from 'lucide-react';
 
 interface StatsDisplayProps {
   storyCount: number;
@@ -10,60 +10,70 @@ interface StatsDisplayProps {
   avgHotness: number;
 }
 
-export default function StatsDisplay({ 
-  storyCount, 
-  articleCount, 
-  processingTime, 
-  avgHotness 
+const statCards = [
+  {
+    key: 'stories',
+    icon: LineChart,
+    label: 'Горячих сюжетов',
+    color: 'from-cyan-400 via-blue-500 to-indigo-600',
+  },
+  {
+    key: 'articles',
+    icon: Layers,
+    label: 'Статей обработано',
+    color: 'from-emerald-400 via-cyan-500 to-sky-600',
+  },
+  {
+    key: 'processing',
+    icon: Clock,
+    label: 'Время обработки',
+    color: 'from-slate-400 via-slate-500 to-slate-600',
+  },
+  {
+    key: 'hotness',
+    icon: Zap,
+    label: 'Средняя горячесть',
+    color: 'from-amber-400 via-orange-500 to-rose-500',
+  },
+];
+
+export default function StatsDisplay({
+  storyCount,
+  articleCount,
+  processingTime,
+  avgHotness,
 }: StatsDisplayProps) {
-  const stats = [
-    {
-      icon: Newspaper,
-      label: 'Горячих новостей',
-      value: storyCount,
-      color: 'from-blue-500 to-cyan-500',
-      bgColor: 'bg-blue-50',
-    },
-    {
-      icon: TrendingUp,
-      label: 'Статей обработано',
-      value: articleCount,
-      color: 'from-purple-500 to-pink-500',
-      bgColor: 'bg-purple-50',
-    },
-    {
-      icon: Clock,
-      label: 'Время обработки',
-      value: `${processingTime.toFixed(1)}с`,
-      color: 'from-green-500 to-emerald-500',
-      bgColor: 'bg-green-50',
-    },
-    {
-      icon: Zap,
-      label: 'Средняя горячесть',
-      value: `${(avgHotness * 100).toFixed(0)}%`,
-      color: 'from-orange-500 to-red-500',
-      bgColor: 'bg-orange-50',
-    },
-  ];
+  const values: Record<string, string | number> = {
+    stories: storyCount,
+    articles: articleCount,
+    processing: `${processingTime.toFixed(1)} c`,
+    hotness: `${(avgHotness * 100).toFixed(0)} %`,
+  };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {stats.map((stat, index) => (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+      {statCards.map((stat, index) => (
         <motion.div
-          key={stat.label}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: index * 0.1 }}
-          className={`${stat.bgColor} rounded-2xl p-6 shadow-lg border border-gray-100`}
+          key={stat.key}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: index * 0.08 }}
+          className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-6 text-slate-100 backdrop-blur"
         >
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-gray-600 mb-2">{stat.label}</p>
-              <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+          <div className="absolute inset-0 opacity-70">
+            <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} mix-blend-soft-light`} />
+            <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-3xl" />
+          </div>
+
+          <div className="relative z-10 flex items-start justify-between">
+            <div>
+              <p className="text-[0.65rem] uppercase tracking-[0.32em] text-slate-300">{stat.label}</p>
+              <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-50">
+                {values[stat.key]}
+              </p>
             </div>
-            <div className={`bg-gradient-to-br ${stat.color} p-3 rounded-xl`}>
-              <stat.icon className="text-white" size={24} />
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white">
+              <stat.icon className="h-5 w-5" />
             </div>
           </div>
         </motion.div>
