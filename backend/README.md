@@ -5,9 +5,11 @@
 ## ✨ Новое в v2.0
 
 - 🔍 **Tavily Search API** - дополнительный источник для real-time breaking news
-- 🧠 **GPT Researcher** - автономное глубокое исследование для топовых новостей (20+ источников)
+- 🧠 **GPT Researcher с Gemini** - автономное глубокое исследование БЕЗ OpenAI (20+ источников)
 - ⚡ **Adaptive Strategy** - селективная генерация черновиков (экономия 69% costs)
 - 📊 **Dual-Source Collection** - RSS + AI search для максимального покрытия
+- 🚀 **Parallel Processing** - параллельная обработка кластеров (ускорение в 3-5x)
+- 🇷🇺 **Русский язык** - все ответы LLM на русском
 
 ## 🚀 Быстрый старт
 
@@ -22,17 +24,38 @@ pip install -r requirements.txt
 Создайте файл `.env`:
 
 ```bash
-# Обязательные ключи
+# ==============================================================================
+# МИНИМАЛЬНАЯ КОНФИГУРАЦИЯ (только Google Gemini)
+# ==============================================================================
 GOOGLE_API_KEY=your_gemini_key_here
-TAVILY_API_KEY=your_tavily_key_here
-OPENAI_API_KEY=your_openai_key_here
 
-# Опциональные настройки
-ENABLE_TAVILY_SEARCH=true
-ENABLE_DEEP_RESEARCH=true
-DEEP_RESEARCH_THRESHOLD=0.7
+# Получить ключ: https://makersuite.google.com/app/apikey
+# Этого достаточно для базовой работы (RSS + Hotness + Drafts + Embeddings)
+
+
+# ==============================================================================
+# ПОЛНАЯ КОНФИГУРАЦИЯ (с Tavily + Deep Research)
+# ==============================================================================
+# GOOGLE_API_KEY=your_gemini_key_here      # Обязательно
+# TAVILY_API_KEY=your_tavily_key_here      # Для Tavily collection + Deep Research
+# # Получить ключ: https://tavily.com
+
+# ВАЖНО: OpenAI ключ НЕ НУЖЕН! GPT Researcher настроен работать с Gemini
+# Конфигурация GPT Researcher для использования Gemini:
+FAST_LLM=google_genai:gemini-1.5-flash
+SMART_LLM=google_genai:gemini-1.5-pro
+STRATEGIC_LLM=google_genai:gemini-1.5-pro
+EMBEDDING=google_genai:models/text-embedding-004
+
+# Feature toggles
+ENABLE_TAVILY_SEARCH=true                # Включить Tavily collection
+ENABLE_DEEP_RESEARCH=true                # Включить Deep Research (требует TAVILY_API_KEY)
+DEEP_RESEARCH_THRESHOLD=0.7              # Порог hotness для deep research
+
+# Дополнительные настройки
 TAVILY_MAX_RESULTS=5
 HOTNESS_THRESHOLD=0.6
+SIMILARITY_THRESHOLD=0.85
 ```
 
 ### Запуск
@@ -106,21 +129,39 @@ finhack/
 
 ## 🔧 Режимы работы
 
+### Минимальный (только GOOGLE_API_KEY)
+```bash
+# .env
+GOOGLE_API_KEY=your_key
+
+# Что работает:
+# ✅ RSS collection
+# ✅ Deduplication (embeddings)
+# ✅ Hotness analysis (5 metrics)
+# ✅ Draft generation
+# ✅ Параллельная обработка
+# ❌ Tavily collection
+# ❌ Deep Research
+```
+
 ### Полный режим (рекомендуется)
 ```bash
+# .env
+GOOGLE_API_KEY=your_gemini_key
+TAVILY_API_KEY=your_tavily_key
 ENABLE_TAVILY_SEARCH=true
 ENABLE_DEEP_RESEARCH=true
+
+# Все функции работают:
+# ✅ RSS + Tavily collection (+60% sources)
+# ✅ Deep Research для топовых новостей (20+ sources)
+# ✅ Параллельная обработка
+# ✅ Все на русском языке
 ```
 
 ### Только Tavily (без deep research)
 ```bash
 ENABLE_TAVILY_SEARCH=true
-ENABLE_DEEP_RESEARCH=false
-```
-
-### Legacy режим (только RSS)
-```bash
-ENABLE_TAVILY_SEARCH=false
 ENABLE_DEEP_RESEARCH=false
 ```
 
@@ -158,12 +199,21 @@ python deep_researcher.py   # Deep research
 
 ## 🤝 Технологии
 
-- **LLM**: Google Gemini 2.0 Flash, GPT-4o-mini, GPT-4o
+- **LLM**: Google Gemini 2.0 Flash, Gemini 1.5 Pro (GPT Researcher тоже на Gemini)
 - **Embeddings**: Google text-embedding-004
 - **Search**: Tavily Search API
-- **Research**: GPT Researcher
+- **Research**: GPT Researcher (настроен на Gemini вместо OpenAI)
 - **Web**: FastAPI, asyncio
 - **Data**: Pydantic, NumPy, pandas
+- **Concurrency**: asyncio.gather для параллельной обработки кластеров
+
+## 🚀 Преимущества использования только Gemini
+
+- ✅ **Один API ключ** вместо двух (GOOGLE_API_KEY вместо GOOGLE + OPENAI)
+- ✅ **Дешевле** - Gemini Flash дешевле GPT-4o-mini
+- ✅ **Быстрее** - Gemini 2.0 Flash experimental очень быстрый
+- ✅ **Бесплатный tier** - Gemini дает больше бесплатных запросов
+- ✅ **Native Structured Output** - встроенная поддержка в Gemini API
 
 ## 📝 Лицензия
 

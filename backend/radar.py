@@ -31,6 +31,120 @@ class FinancialNewsRadar:
         self.generator = DraftGenerator()
         self.researcher = DeepNewsResearcher()
     
+    async def _process_cluster(
+        self,
+        cluster_id: str,
+        cluster_articles: List[NewsArticle],
+        hotness_threshold: float
+    ) -> Optional[NewsStory]:
+        """
+        Process a single cluster of articles.
+        
+        Args:
+            cluster_id: Cluster identifier
+            cluster_articles: Articles in the cluster
+            hotness_threshold: Minimum hotness score
+            
+        Returns:
+            NewsStory or None if processing failed or below threshold
+        """
+        try:
+            # Get representative articles (max 3 for analysis)
+            representative_articles = cluster_articles[:3]
+            
+            # Analyze hotness with structured output
+            analysis = self.analyzer.analyze_hotness(representative_articles)
+            
+            if not analysis:
+                logger.warning(f"Skipping cluster {cluster_id}: analysis failed")
+                return None
+            
+            # Extract components from structured output
+            hotness_score = analysis.hotness
+            entities = analysis.entities
+            timeline = analysis.timeline
+            headline = analysis.headline
+            why_now = analysis.why_now
+            
+            # Skip if below threshold
+            if hotness_score.overall < hotness_threshold:
+                logger.debug(
+                    f"Skipping cluster {cluster_id}: "
+                    f"hotness {hotness_score.overall:.2f} < {hotness_threshold}"
+                )
+                return None
+            
+            # Step 4: Generate draft (only for high-hotness stories OR if deep research disabled)
+            should_generate_draft = (
+                not settings.enable_deep_research or 
+                hotness_score.overall >= settings.deep_research_threshold
+            )
+            
+            draft = None
+            has_deep_research = False
+            research_summary = None
+            
+            if should_generate_draft:
+                logger.info(f"Generating draft for cluster {cluster_id} (hotness={hotness_score.overall:.2f})...")
+                draft = self.generator.generate_draft(
+                    headline=headline,
+                    articles=cluster_articles[:5],
+                    entities=entities,
+                    timeline=timeline,
+                    why_now=why_now,
+                    hotness_reasoning=hotness_score.reasoning
+                )
+                
+                if not draft:
+                    logger.warning(f"Failed to generate draft for cluster {cluster_id}")
+                    draft = f"# {headline}\n\n{why_now}\n\nНе удалось сгенерировать полный черновик."
+            else:
+                # For lower-hotness stories, create a simple summary instead of full draft
+                logger.info(f"Skipping full draft for cluster {cluster_id} (hotness below deep research threshold)")
+                draft = f"# {headline}\n\n**Почему это важно сейчас**: {why_now}\n\n**Ключевые сущности**: {', '.join(e.name for e in entities[:5])}\n\n_Полный черновик не создан - оценка горячести ниже порога для детального анализа._"
+            
+            # Collect source URLs
+            source_urls = [article.url for article in cluster_articles[:5]]
+            
+            # Create story
+            story = NewsStory(
+                id=cluster_id,
+                headline=headline,
+                hotness=hotness_score.overall,
+                hotness_details=hotness_score,
+                why_now=why_now,
+                entities=entities,
+                sources=source_urls,
+                timeline=timeline,
+                draft=draft,
+                dedup_group=cluster_id,
+                article_count=len(cluster_articles),
+                has_deep_research=has_deep_research,
+                research_summary=research_summary
+            )
+            
+            # Step 5: Apply deep research for top stories
+            if (settings.enable_deep_research and 
+                hotness_score.overall >= settings.deep_research_threshold):
+                logger.info(f"Conducting deep research for: {headline[:50]}...")
+                try:
+                    story = await self.researcher.enrich_story(story)
+                    story.has_deep_research = True
+                    story.research_summary = "Глубокое исследование выполнено с помощью GPT Researcher"
+                except Exception as e:
+                    logger.error(f"Deep research failed for {cluster_id}: {e}")
+            
+            logger.info(
+                f"Processed story: {headline[:50]}... "
+                f"(hotness={hotness_score.overall:.2f})"
+            )
+            
+            return story
+            
+        except Exception as e:
+            logger.error(f"Failed to process cluster {cluster_id}: {e}", exc_info=True)
+            return None
+    
     async def process_news(
         self,
         time_window_hours: Optional[int] = None,
@@ -98,107 +212,27 @@ class FinancialNewsRadar:
         clusters = self.deduplicator.cluster_articles(articles)
         logger.info(f"Created {len(clusters)} clusters")
         
-        # Step 3: Analyze hotness for each cluster
-        logger.info("Step 3: Analyzing hotness...")
-        stories = []
+        # Step 3: Analyze hotness for each cluster (PARALLEL PROCESSING)
+        logger.info(f"Step 3: Analyzing hotness for {len(clusters)} clusters in parallel...")
         
-        for cluster_id, cluster_articles in clusters.items():
-            try:
-                # Get representative articles (max 3 for analysis)
-                representative_articles = cluster_articles[:3]
-                
-                # Analyze hotness with structured output
-                analysis = self.analyzer.analyze_hotness(representative_articles)
-                
-                if not analysis:
-                    logger.warning(f"Skipping cluster {cluster_id}: analysis failed")
-                    continue
-                
-                # Extract components from structured output
-                hotness_score = analysis.hotness
-                entities = analysis.entities
-                timeline = analysis.timeline
-                headline = analysis.headline
-                why_now = analysis.why_now
-                
-                # Skip if below threshold
-                if hotness_score.overall < hotness_threshold:
-                    logger.debug(
-                        f"Skipping cluster {cluster_id}: "
-                        f"hotness {hotness_score.overall:.2f} < {hotness_threshold}"
-                    )
-                    continue
-                
-                # Step 4: Generate draft (only for high-hotness stories OR if deep research disabled)
-                should_generate_draft = (
-                    not settings.enable_deep_research or 
-                    hotness_score.overall >= settings.deep_research_threshold
-                )
-                
-                draft = None
-                has_deep_research = False
-                research_summary = None
-                
-                if should_generate_draft:
-                    logger.info(f"Generating draft for cluster {cluster_id} (hotness={hotness_score.overall:.2f})...")
-                    draft = self.generator.generate_draft(
-                        headline=headline,
-                        articles=cluster_articles[:5],
-                        entities=entities,
-                        timeline=timeline,
-                        why_now=why_now,
-                        hotness_reasoning=hotness_score.reasoning
-                    )
-                    
-                    if not draft:
-                        logger.warning(f"Failed to generate draft for cluster {cluster_id}")
-                        draft = f"# {headline}\n\n{why_now}\n\nFailed to generate full draft."
-                else:
-                    # For lower-hotness stories, create a simple summary instead of full draft
-                    logger.info(f"Skipping full draft for cluster {cluster_id} (hotness below deep research threshold)")
-                    draft = f"# {headline}\n\n**Why Now**: {why_now}\n\n**Key Entities**: {', '.join(e.name for e in entities[:5])}\n\n_Full draft not generated - hotness score below threshold for detailed analysis._"
-                
-                # Collect source URLs
-                source_urls = [article.url for article in cluster_articles[:5]]
-                
-                # Create story
-                story = NewsStory(
-                    id=cluster_id,
-                    headline=headline,
-                    hotness=hotness_score.overall,
-                    hotness_details=hotness_score,
-                    why_now=why_now,
-                    entities=entities,
-                    sources=source_urls,
-                    timeline=timeline,
-                    draft=draft,
-                    dedup_group=cluster_id,
-                    article_count=len(cluster_articles),
-                    has_deep_research=has_deep_research,
-                    research_summary=research_summary
-                )
-                
-                # Step 5: Apply deep research for top stories
-                if (settings.enable_deep_research and 
-                    hotness_score.overall >= settings.deep_research_threshold):
-                    logger.info(f"Conducting deep research for: {headline[:50]}...")
-                    try:
-                        story = await self.researcher.enrich_story(story)
-                        story.has_deep_research = True
-                        story.research_summary = "Deep research conducted using GPT Researcher"
-                    except Exception as e:
-                        logger.error(f"Deep research failed for {cluster_id}: {e}")
-                
-                stories.append(story)
-                
-                logger.info(
-                    f"Processed story: {headline[:50]}... "
-                    f"(hotness={hotness_score.overall:.2f})"
-                )
-                
-            except Exception as e:
-                logger.error(f"Failed to process cluster {cluster_id}: {e}", exc_info=True)
-                continue
+        # Create tasks for parallel processing
+        tasks = [
+            self._process_cluster(cluster_id, cluster_articles, hotness_threshold)
+            for cluster_id, cluster_articles in clusters.items()
+        ]
+        
+        # Execute all tasks in parallel
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Filter out None and exceptions
+        stories = []
+        for result in results:
+            if isinstance(result, Exception):
+                logger.error(f"Cluster processing raised exception: {result}")
+            elif result is not None:
+                stories.append(result)
+        
+        logger.info(f"Processed {len(stories)} stories out of {len(clusters)} clusters")
         
         # Sort by hotness and take top K
         stories.sort(key=lambda s: s.hotness, reverse=True)

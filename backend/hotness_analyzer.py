@@ -3,8 +3,7 @@
 import logging
 from typing import List, Optional
 
-import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold
+from google import genai
 
 from config import settings
 from models import NewsArticle, HotnessAnalysis
@@ -18,24 +17,12 @@ class HotnessAnalyzer:
     
     def __init__(self):
         """Initialize the analyzer with Gemini."""
-        genai.configure(api_key=settings.google_api_key)
-        self.model = genai.GenerativeModel(
-            model_name=settings.gemini_model,
-            generation_config={
-                "temperature": settings.temperature,
-                "top_p": 0.95,
-                "top_k": 40,
-                "max_output_tokens": 8192,
-                "response_mime_type": "application/json",
-                "response_schema": HotnessAnalysis,
-            },
-            safety_settings={
-                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-            }
-        )
+        if not settings.google_api_key:
+            raise ValueError(
+                "GOOGLE_API_KEY is not set. Please set it in your .env file or environment variables."
+            )
+        self.client = genai.Client(api_key=settings.google_api_key)
+        self.model_name = settings.gemini_model
     
     def _create_hotness_prompt(self, articles: List[NewsArticle]) -> str:
         """Create prompt for hotness analysis."""
@@ -52,28 +39,30 @@ URL: {article.url}
 
 """
         
-        prompt = f"""You are a financial market analyst specializing in identifying "hot" news that could impact financial markets.
+        prompt = f"""Ты финансовый аналитик, специализирующийся на выявлении "горячих" новостей, которые могут повлиять на финансовые рынки.
 
-Analyze the following news article(s) and provide a structured assessment of its "hotness" - how significant and time-sensitive this news is for financial markets.
+Проанализируй следующие новостные статьи и предоставь структурированную оценку их "горячести" - насколько значимы и актуальны эти новости для финансовых рынков.
 
 {articles_text}
 
-Assess the hotness based on these dimensions (each 0-1):
-1. **Unexpectedness**: How surprising is this relative to market consensus?
-2. **Materiality**: Potential impact on price/volatility/liquidity
-3. **Velocity**: Speed of information spread (retweets, updates, confirmations)
-4. **Breadth**: Number of affected assets (direct and spillover effects)
-5. **Credibility**: Source reputation and confirmation level
+Оцени горячесть по следующим измерениям (каждое 0-1):
+1. **Unexpectedness (Неожиданность)**: Насколько это неожиданно относительно рыночного консенсуса?
+2. **Materiality (Материальность)**: Потенциальное влияние на цену/волатильность/ликвидность
+3. **Velocity (Скорость)**: Скорость распространения информации (репосты, обновления, подтверждения)
+4. **Breadth (Широта)**: Количество затронутых активов (прямые и spillover эффекты)
+5. **Credibility (Достоверность)**: Репутация источника и уровень подтверждений
 
-Also provide:
-- **Overall hotness**: Weighted combination of all dimensions (0-1)
-- **Reasoning**: Detailed explanation of the scoring
-- **Headline**: Concise headline summarizing the story
-- **Why Now**: 1-2 sentences explaining why this matters RIGHT NOW
-- **Entities**: Companies, tickers, sectors, countries mentioned (with type and relevance 0-1)
-- **Timeline**: Key events with timestamps (types: first_mention, confirmation, update, correction)
+Также предоставь:
+- **Overall hotness**: Взвешенная комбинация всех измерений (0-1)
+- **Reasoning**: Детальное объяснение оценки НА РУССКОМ ЯЗЫКЕ
+- **Headline**: Краткий заголовок НА РУССКОМ ЯЗЫКЕ
+- **Why Now**: 1-2 предложения на русском, объясняющие почему это важно ИМЕННО СЕЙЧАС
+- **Entities**: Компании, тикеры, сектора, страны (с типом и релевантностью 0-1)
+- **Timeline**: Ключевые события с временными метками (типы: first_mention, confirmation, update, correction), описания НА РУССКОМ
 
-Be precise and analytical. For low-importance news, give low scores. For genuinely market-moving news, give high scores.
+Будь точным и аналитичным. Для малозначимых новостей ставь низкие оценки. Для действительно рыночных новостей - высокие.
+
+ВАЖНО: Все текстовые поля (reasoning, headline, why_now, timeline descriptions) должны быть НА РУССКОМ ЯЗЫКЕ.
 """
         return prompt
     
@@ -98,7 +87,18 @@ Be precise and analytical. For low-importance news, give low scores. For genuine
             
             logger.info(f"Analyzing hotness for cluster of {len(articles)} articles...")
             
-            response = self.model.generate_content(prompt)
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config={
+                    "temperature": settings.temperature,
+                    "top_p": 0.95,
+                    "top_k": 40,
+                    "max_output_tokens": 8192,
+                    "response_mime_type": "application/json",
+                    "response_schema": HotnessAnalysis,
+                }
+            )
             
             # With structured output, response is automatically parsed
             analysis = response.parsed

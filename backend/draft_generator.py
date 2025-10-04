@@ -81,51 +81,53 @@ URL: {article.url}
         for event in timeline[:5]:
             timeline_text += f"- {event.timestamp.strftime('%Y-%m-%d %H:%M')}: {event.description}\n"
         
-        prompt = f"""You are a financial news editor creating a publication-ready article draft.
+        prompt = f"""Ты редактор финансовых новостей, создающий готовый к публикации черновик статьи.
 
-**Story Headline**: {headline}
+**Заголовок истории**: {headline}
 
-**Why This Matters Now**: {why_now}
+**Почему это важно сейчас**: {why_now}
 
-**Key Entities**: {entities_list}
+**Ключевые сущности**: {entities_list}
 
-**Timeline**:
+**Таймлайн**:
 {timeline_text}
 
-**Source Materials**:
+**Исходные материалы**:
 {articles_summary}
 
-**Analysis Context**: {hotness_reasoning}
+**Контекст анализа**: {hotness_reasoning}
 
-Create a professional financial news article with the following structure:
+Создай профессиональную финансовую новостную статью со следующей структурой:
 
-# [Compelling Headline]
+# [Убедительный заголовок]
 
-**Lead Paragraph**: 2-3 sentences capturing the core story and immediate implications
+**Лид-абзац**: 2-3 предложения, раскрывающие суть истории и непосредственные последствия
 
-**Key Points**:
-• [First key point with specific details]
-• [Second key point with context]
-• [Third key point with broader implications]
+**Ключевые моменты**:
+• [Первый ключевой момент с конкретными деталями]
+• [Второй ключевой момент с контекстом]
+• [Третий ключевой момент с более широкими последствиями]
 
-**Market Context**: Brief paragraph explaining market significance and potential impacts
+**Рыночный контекст**: Краткий абзац, объясняющий рыночное значение и потенциальные последствия
 
-**What We Know**: Summary of confirmed facts with timeline
+**Что мы знаем**: Резюме подтвержденных фактов с таймлайном
 
-**Sources**: List of source URLs referenced
+**Источники**: Список используемых URL источников
 
-**Quote/Attribution**: If relevant, include any notable quotes or attributions from sources
+**Цитаты/Атрибуция**: Если релевантно, включи заметные цитаты или ссылки на источники
 
-Requirements:
-- Be factual and precise
-- Cite specific numbers, dates, and entities
-- Include verifiable source references
-- Avoid speculation - stick to what's confirmed
-- Use professional financial journalism tone
-- Keep it concise (300-400 words)
-- Include proper attributions
+Требования:
+- Будь фактичным и точным
+- Указывай конкретные цифры, даты и сущности
+- Включи проверяемые ссылки на источники
+- Избегай спекуляций - придерживайся подтвержденного
+- Используй профессиональный тон финансовой журналистики
+- Будь лаконичным (300-400 слов)
+- Включи правильные атрибуции
 
-Generate the draft now:
+ВАЖНО: Весь черновик должен быть НА РУССКОМ ЯЗЫКЕ.
+
+Сгенерируй черновик:
 """
         
         try:

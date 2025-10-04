@@ -17,10 +17,13 @@ class DeepNewsResearcher:
     
     def __init__(self):
         """Initialize deep researcher."""
-        self.enabled = settings.enable_deep_research and settings.openai_api_key and settings.tavily_api_key
+        # GPT Researcher can work with Google Gemini instead of OpenAI
+        # Check if we have either OpenAI or Google API key
+        has_llm_key = settings.openai_api_key or settings.google_api_key
+        self.enabled = settings.enable_deep_research and has_llm_key and settings.tavily_api_key
         if not self.enabled:
             logger.warning(
-                "Deep research disabled: requires OPENAI_API_KEY and TAVILY_API_KEY"
+                "Deep research disabled: requires (OPENAI_API_KEY or GOOGLE_API_KEY) and TAVILY_API_KEY"
             )
     
     async def research_story(

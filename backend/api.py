@@ -61,7 +61,7 @@ class HealthResponse(BaseModel):
 @app.get("/", response_class=HTMLResponse)
 async def root():
     """Serve the main HTML page."""
-    return """
+    return r"""
 <!DOCTYPE html>
 <html lang="en">
 <head>

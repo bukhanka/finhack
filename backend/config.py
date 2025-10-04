@@ -25,16 +25,13 @@ class Settings(BaseSettings):
     hotness_threshold: float = float(os.getenv("HOTNESS_THRESHOLD", "0.6"))
     
     # Model settings
-    gemini_model: str = "gemini-2.0-flash-exp"
+    gemini_model: str = "gemini-2.0-flash"
     embedding_model: str = "models/text-embedding-004"
     temperature: float = 0.3
     
     # News sources RSS feeds
     rss_feeds: List[str] = [
-        "https://feeds.reuters.com/reuters/businessNews",
-        "https://feeds.reuters.com/news/wealth",
         "https://www.ft.com/rss/companies",
-        "https://www.bloomberg.com/feed/podcast/markets.xml",
         "https://seekingalpha.com/feed.xml",
         "https://www.investing.com/rss/news.rss",
         "https://www.cnbc.com/id/100003114/device/rss/rss.html",
