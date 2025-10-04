@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     embedding_model: str = "models/text-embedding-004"
     temperature: float = 0.3
     
+    # GPT Researcher LLM settings
+    fast_llm: str = os.getenv("FAST_LLM", "google_genai:gemini-2.0-flash")
+    smart_llm: str = os.getenv("SMART_LLM", "google_genai:gemini-2.5-flash")
+    strategic_llm: str = os.getenv("STRATEGIC_LLM", "google_genai:gemini-2.5-pro")
+    
     # News sources RSS feeds
     rss_feeds: List[str] = [
         "https://www.ft.com/rss/companies",

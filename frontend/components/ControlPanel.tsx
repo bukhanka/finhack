@@ -35,15 +35,15 @@ export default function ControlPanel({ onScan, isLoading }: ControlPanelProps) {
           <Settings className="text-white" size={24} />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Configuration</h2>
-          <p className="text-gray-600 text-sm">Set parameters for news scanning</p>
+          <h2 className="text-2xl font-bold text-gray-900">Настройки</h2>
+          <p className="text-gray-600 text-sm">Параметры сканирования новостей</p>
         </div>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 mb-6">
         <div className="space-y-2">
           <label className="block text-sm font-semibold text-gray-700">
-            Time Window
+            Временное окно
           </label>
           <div className="relative">
             <input
@@ -55,15 +55,15 @@ export default function ControlPanel({ onScan, isLoading }: ControlPanelProps) {
               className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition-colors font-semibold"
             />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">
-              hours
+              часов
             </span>
           </div>
-          <p className="text-xs text-gray-500">Last 1-168 hours</p>
+          <p className="text-xs text-gray-500">Последние 1-168 часов</p>
         </div>
 
         <div className="space-y-2">
           <label className="block text-sm font-semibold text-gray-700">
-            Top Stories
+            Топ новостей
           </label>
           <div className="relative">
             <input
@@ -75,15 +75,15 @@ export default function ControlPanel({ onScan, isLoading }: ControlPanelProps) {
               className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition-colors font-semibold"
             />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-medium">
-              stories
+              новостей
             </span>
           </div>
-          <p className="text-xs text-gray-500">Number of results</p>
+          <p className="text-xs text-gray-500">Количество результатов</p>
         </div>
 
         <div className="space-y-2">
           <label className="block text-sm font-semibold text-gray-700">
-            Hotness Threshold
+            Порог горячести
           </label>
           <div className="relative">
             <input
@@ -99,7 +99,7 @@ export default function ControlPanel({ onScan, isLoading }: ControlPanelProps) {
               / 1.0
             </span>
           </div>
-          <p className="text-xs text-gray-500">Minimum score</p>
+          <p className="text-xs text-gray-500">Минимальный балл</p>
         </div>
       </div>
 
@@ -111,12 +111,12 @@ export default function ControlPanel({ onScan, isLoading }: ControlPanelProps) {
         {isLoading ? (
           <>
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-            Scanning News Sources...
+            Сканирование новостей...
           </>
         ) : (
           <>
             <Zap size={24} />
-            Scan for Hot News
+            Сканировать новости
           </>
         )}
       </button>

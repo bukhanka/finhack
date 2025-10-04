@@ -19,28 +19,28 @@ export default function StatsDisplay({
   const stats = [
     {
       icon: Newspaper,
-      label: 'Hot Stories',
+      label: 'Горячих новостей',
       value: storyCount,
       color: 'from-blue-500 to-cyan-500',
       bgColor: 'bg-blue-50',
     },
     {
       icon: TrendingUp,
-      label: 'Articles Processed',
+      label: 'Статей обработано',
       value: articleCount,
       color: 'from-purple-500 to-pink-500',
       bgColor: 'bg-purple-50',
     },
     {
       icon: Clock,
-      label: 'Processing Time',
-      value: `${processingTime.toFixed(1)}s`,
+      label: 'Время обработки',
+      value: `${processingTime.toFixed(1)}с`,
       color: 'from-green-500 to-emerald-500',
       bgColor: 'bg-green-50',
     },
     {
       icon: Zap,
-      label: 'Avg Hotness',
+      label: 'Средняя горячесть',
       value: `${(avgHotness * 100).toFixed(0)}%`,
       color: 'from-orange-500 to-red-500',
       bgColor: 'bg-orange-50',

@@ -10,27 +10,27 @@ interface HotnessChartProps {
 export default function HotnessChart({ hotness }: HotnessChartProps) {
   const data = [
     {
-      metric: 'Unexpected',
+      metric: 'Неожиданность',
       value: hotness.unexpectedness * 100,
       fullMark: 100,
     },
     {
-      metric: 'Material',
+      metric: 'Значимость',
       value: hotness.materiality * 100,
       fullMark: 100,
     },
     {
-      metric: 'Velocity',
+      metric: 'Скорость',
       value: hotness.velocity * 100,
       fullMark: 100,
     },
     {
-      metric: 'Breadth',
+      metric: 'Охват',
       value: hotness.breadth * 100,
       fullMark: 100,
     },
     {
-      metric: 'Credible',
+      metric: 'Достоверность',
       value: hotness.credibility * 100,
       fullMark: 100,
     },

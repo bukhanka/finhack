@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Financial News RADAR",
-  description: "AI-Powered Hot News Detection & Analysis for Financial Markets",
+  title: "Финансовый Новостной РАДАР",
+  description: "ИИ-анализ горячих новостей финансовых рынков",
 };
 
 export default function RootLayout({
@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ru">
       <body className={inter.className}>{children}</body>
     </html>
   );

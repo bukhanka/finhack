@@ -57,7 +57,7 @@ export default function StoryCard({ story, index }: StoryCardProps) {
               {story.has_deep_research && (
                 <span className="flex items-center gap-1 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-semibold">
                   <Sparkles size={12} />
-                  Deep Research
+                  Углубленный анализ
                 </span>
               )}
             </div>
@@ -68,7 +68,7 @@ export default function StoryCard({ story, index }: StoryCardProps) {
               <div className="flex items-start gap-2">
                 <TrendingUp className="text-purple-600 flex-shrink-0 mt-1" size={20} />
                 <div>
-                  <p className="text-sm font-semibold text-purple-900 mb-1">Why Now</p>
+                  <p className="text-sm font-semibold text-purple-900 mb-1">Почему сейчас</p>
                   <p className="text-gray-700">{story.why_now}</p>
                 </div>
               </div>
@@ -99,13 +99,13 @@ export default function StoryCard({ story, index }: StoryCardProps) {
                 <div className="text-3xl font-bold text-white">
                   {Math.round(story.hotness * 100)}
                 </div>
-                <div className="text-xs text-white/90 font-semibold">HOTNESS</div>
+                <div className="text-xs text-white/90 font-semibold">ГОРЯЧЕСТЬ</div>
               </div>
             </div>
             <div className="text-center mt-2">
               <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
                 <Clock size={12} />
-                {story.article_count} sources
+                {story.article_count} источников
               </div>
             </div>
           </div>
@@ -118,7 +118,7 @@ export default function StoryCard({ story, index }: StoryCardProps) {
           onClick={() => setIsExpanded(!isExpanded)}
           className="w-full flex items-center justify-between text-gray-700 hover:text-gray-900 transition-colors"
         >
-          <span className="font-semibold">Detailed Analysis</span>
+          <span className="font-semibold">Детальный анализ</span>
           {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
         </button>
       </div>
@@ -138,19 +138,19 @@ export default function StoryCard({ story, index }: StoryCardProps) {
                 <div>
                   <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <BarChart3 className="text-purple-600" size={20} />
-                    Hotness Metrics
+                    Метрики горячести
                   </h3>
                   <HotnessMetrics hotness={story.hotness_details} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-4 text-center">Radar View</h3>
+                  <h3 className="font-bold text-gray-900 mb-4 text-center">Радарный вид</h3>
                   <HotnessChart hotness={story.hotness_details} />
                 </div>
               </div>
 
               {/* Reasoning */}
               <div className="bg-blue-50 rounded-xl p-4">
-                <h4 className="font-semibold text-blue-900 mb-2">Analysis Reasoning</h4>
+                <h4 className="font-semibold text-blue-900 mb-2">Обоснование анализа</h4>
                 <p className="text-gray-700 text-sm leading-relaxed">{story.hotness_details.reasoning}</p>
               </div>
 
@@ -159,7 +159,7 @@ export default function StoryCard({ story, index }: StoryCardProps) {
                 <div>
                   <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <Clock className="text-purple-600" size={20} />
-                    Timeline
+                    Таймлайн
                   </h3>
                   <div className="space-y-3">
                     {story.timeline.map((event, idx) => (
@@ -180,7 +180,7 @@ export default function StoryCard({ story, index }: StoryCardProps) {
                             rel="noopener noreferrer"
                             className="text-xs text-purple-600 hover:text-purple-800 flex items-center gap-1 mt-1"
                           >
-                            View source <ExternalLink size={10} />
+                            Источник <ExternalLink size={10} />
                           </a>
                         </div>
                       </div>
@@ -195,7 +195,7 @@ export default function StoryCard({ story, index }: StoryCardProps) {
                   onClick={() => setShowDraft(!showDraft)}
                   className="w-full flex items-center justify-between bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
                 >
-                  <span>📝 {showDraft ? 'Hide' : 'View'} Draft Article</span>
+                  <span>📝 {showDraft ? 'Скрыть' : 'Показать'} черновик статьи</span>
                   {showDraft ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                 </button>
 
@@ -231,7 +231,7 @@ export default function StoryCard({ story, index }: StoryCardProps) {
               <div>
                 <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
                   <ExternalLink className="text-purple-600" size={20} />
-                  Sources ({story.sources.length})
+                  Источники ({story.sources.length})
                 </h3>
                 <div className="grid gap-2">
                   {story.sources.slice(0, 5).map((url, idx) => (

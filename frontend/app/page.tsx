@@ -73,10 +73,10 @@ export default function Home() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  Financial News RADAR
+                  Финансовый Новостной РАДАР
                 </h1>
                 <p className="text-gray-600 text-sm font-medium">
-                  AI-Powered Hot News Detection & Analysis
+                  ИИ-анализ и выявление горячих новостей
                 </p>
               </div>
             </div>
@@ -86,7 +86,7 @@ export default function Home() {
               }`}>
                 <Activity size={16} />
                 <span className="text-sm font-semibold">
-                  {isHealthy ? 'Backend Online' : 'Backend Offline'}
+                  {isHealthy ? 'Сервер онлайн' : 'Сервер офлайн'}
                 </span>
               </div>
             </div>
@@ -112,7 +112,7 @@ export default function Home() {
                 <div className="flex items-start gap-4">
                   <AlertCircle className="text-red-600 flex-shrink-0" size={24} />
                   <div>
-                    <h3 className="font-bold text-red-900 mb-1">Error</h3>
+                    <h3 className="font-bold text-red-900 mb-1">Ошибка</h3>
                     <p className="text-red-700">{error}</p>
                   </div>
                 </div>
@@ -139,10 +139,10 @@ export default function Home() {
             >
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-3xl font-bold text-gray-900">
-                  🔥 Hot Stories
+                  🔥 Горячие новости
                 </h2>
                 <div className="text-sm text-gray-600">
-                  Generated at {new Date(data.generated_at).toLocaleString()}
+                  Создано: {new Date(data.generated_at).toLocaleString('ru-RU')}
                 </div>
               </div>
 
@@ -165,10 +165,10 @@ export default function Home() {
                 <Radar className="text-gray-400" size={48} />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                No Hot Stories Found
+                Горячих новостей не найдено
               </h3>
               <p className="text-gray-600">
-                Try adjusting the time window or lowering the hotness threshold
+                Попробуйте изменить временное окно или понизить порог горячести
               </p>
             </motion.div>
           )}
@@ -184,28 +184,28 @@ export default function Home() {
                 <Radar className="text-purple-600" size={48} />
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                Ready to Scan
+                Готов к сканированию
               </h3>
               <p className="text-gray-600 mb-6">
-                Configure your parameters above and click "Scan for Hot News" to begin
+                Настройте параметры выше и нажмите "Сканировать новости"
               </p>
               <div className="grid md:grid-cols-3 gap-4 text-left max-w-2xl mx-auto">
                 <div className="bg-purple-50 rounded-xl p-4">
-                  <div className="font-bold text-purple-900 mb-1">📊 Multi-dimensional</div>
+                  <div className="font-bold text-purple-900 mb-1">📊 Многомерный анализ</div>
                   <div className="text-sm text-purple-700">
-                    5 metrics: unexpectedness, materiality, velocity, breadth, credibility
+                    5 метрик: неожиданность, значимость, скорость, охват, достоверность
                   </div>
                 </div>
                 <div className="bg-blue-50 rounded-xl p-4">
-                  <div className="font-bold text-blue-900 mb-1">🔍 Deep Research</div>
+                  <div className="font-bold text-blue-900 mb-1">🔍 Глубокое исследование</div>
                   <div className="text-sm text-blue-700">
-                    AI-powered analysis with 20+ sources for hot stories
+                    ИИ-анализ с использованием 20+ источников для горячих новостей
                   </div>
                 </div>
                 <div className="bg-green-50 rounded-xl p-4">
-                  <div className="font-bold text-green-900 mb-1">✅ Verified</div>
+                  <div className="font-bold text-green-900 mb-1">✅ Проверено</div>
                   <div className="text-sm text-green-700">
-                    Timeline tracking with source attribution
+                    Отслеживание таймлайна с указанием источников
                   </div>
                 </div>
               </div>
@@ -218,7 +218,7 @@ export default function Home() {
       <footer className="mt-16 py-8 bg-white/50 backdrop-blur-lg border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-600">
           <p className="text-sm">
-            Financial News RADAR v2.0 • Powered by Gemini 2.0, GPT Researcher & Tavily
+            Финансовый Новостной РАДАР v2.0 • На базе Gemini 2.0, GPT Researcher & Tavily
           </p>
         </div>
       </footer>

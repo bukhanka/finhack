@@ -8,11 +8,11 @@ interface HotnessMetricsProps {
 }
 
 const metrics = [
-  { key: 'unexpectedness', label: 'Unexpectedness', color: 'bg-purple-500' },
-  { key: 'materiality', label: 'Materiality', color: 'bg-blue-500' },
-  { key: 'velocity', label: 'Velocity', color: 'bg-green-500' },
-  { key: 'breadth', label: 'Breadth', color: 'bg-yellow-500' },
-  { key: 'credibility', label: 'Credibility', color: 'bg-red-500' },
+  { key: 'unexpectedness', label: 'Неожиданность', color: 'bg-purple-500' },
+  { key: 'materiality', label: 'Значимость', color: 'bg-blue-500' },
+  { key: 'velocity', label: 'Скорость', color: 'bg-green-500' },
+  { key: 'breadth', label: 'Охват', color: 'bg-yellow-500' },
+  { key: 'credibility', label: 'Достоверность', color: 'bg-red-500' },
 ];
 
 export default function HotnessMetrics({ hotness }: HotnessMetricsProps) {
