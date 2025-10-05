@@ -1,87 +1,27 @@
 'use client';
 
+import { motion } from 'framer-motion';
+import { TrendingUp, Newspaper, ArrowRight, Activity, Sparkles, Target } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Activity, AlertCircle, LineChart, ShieldCheck, Sparkle } from 'lucide-react';
-import ControlPanel from '@/components/ControlPanel';
-import StoryCard from '@/components/StoryCard';
-import StatsDisplay from '@/components/StatsDisplay';
-import MoneyBackground from '@/components/MoneyBackground';
 import { radarApi } from '@/lib/api';
-import { ProcessRequest, RadarResponse } from '@/lib/types';
+import MoneyBackground from '@/components/MoneyBackground';
 
-const heroHighlights = [
-  {
-    title: 'Многомерный скоринг',
-    copy: 'Неожиданность, материальность, скорость, охват и достоверность — единая шкала приоритизации.',
-  },
-  {
-    title: 'Интеллектуальное исследование',
-    copy: 'Автоматический deep research для приоритетных сюжетов с расширенной ссылочной базой.',
-  },
-  {
-    title: 'Премиальные черновики',
-    copy: 'Структурированные тексты с атрибуцией и рыночным контекстом, готовые к коммуникациям.',
-  },
-];
-
-export default function Home() {
-  const [data, setData] = useState<RadarResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export default function HomePage() {
   const [isHealthy, setIsHealthy] = useState(false);
 
   useEffect(() => {
-    const init = async () => {
-      await checkHealth();
-      await loadLastResult();
+    const checkHealth = async () => {
+      try {
+        const health = await radarApi.healthCheck();
+        setIsHealthy(health.status === 'healthy');
+      } catch (err) {
+        setIsHealthy(false);
+      }
     };
 
-    init();
+    checkHealth();
   }, []);
-
-  const checkHealth = async () => {
-    try {
-      const health = await radarApi.healthCheck();
-      setIsHealthy(health.status === 'healthy');
-    } catch (err) {
-      setIsHealthy(false);
-      console.error('Health check failed:', err);
-    }
-  };
-
-  const loadLastResult = async () => {
-    try {
-      const result = await radarApi.getLastResult();
-      setData(result);
-    } catch {
-      // cached result отсутствует — допустимо
-    }
-  };
-
-  const handleScan = async (request: ProcessRequest) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const result = await radarApi.processNews(request);
-      setData(result);
-    } catch (err: unknown) {
-      const errorMessage = err && typeof err === 'object' && 'response' in err
-        ? (err.response as { data?: { detail?: string } })?.data?.detail || 'Не удалось обработать новости'
-        : err instanceof Error
-        ? err.message
-        : 'Не удалось обработать новости';
-      setError(errorMessage);
-      console.error('Error processing news:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const avgHotness = data
-    ? data.stories.reduce((sum, story) => sum + story.hotness, 0) / data.stories.length
-    : 0;
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#05070f] text-slate-100">
@@ -96,13 +36,14 @@ export default function Home() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 lg:px-8">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 shadow-lg shadow-cyan-500/25">
-              <LineChart className="h-6 w-6 text-white" />
+              <Activity className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-sm font-semibold uppercase tracking-[0.32em] text-slate-200">Radar Intelligence</h1>
-              <p className="text-xs text-slate-400">Финансовый мониторинг горячих событий</p>
+              <h1 className="text-sm font-semibold uppercase tracking-[0.32em] text-slate-200">News Intelligence</h1>
+              <p className="text-xs text-slate-400">Двухрежимная платформа агрегации новостей</p>
             </div>
           </div>
+          
           <div
             className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-slate-300 ${
               isHealthy ? 'border-emerald-500/40 text-emerald-300' : 'border-rose-500/40 text-rose-300'
@@ -114,139 +55,137 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="relative mx-auto max-w-6xl px-4 pb-20 lg:px-8">
-        <section className="grid gap-12 py-16 lg:grid-cols-[1.2fr,0.8fr] lg:items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="space-y-8"
-          >
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[0.7rem] uppercase tracking-[0.35em] text-slate-300">
-              <ShieldCheck className="h-4 w-4 text-cyan-300" />
-              Контроль достоверности • Таймлайн подтверждений
-            </div>
-            <div className="space-y-4">
-              <h2 className="text-4xl font-semibold leading-tight text-slate-50 md:text-5xl">
-                Финансовый радар для мгновенной оценки рыночных событий
-              </h2>
-              <p className="max-w-xl text-lg text-slate-400">
-                Получайте отфильтрованные горячие сюжеты, прозрачную аналитику по пяти критериям «горячести» и готовые к публикации материалы в тональности инвестиционных банков.
-              </p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              {heroHighlights.map((item) => (
-                <div
-                  key={item.title}
-                  className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/8 via-slate-900/25 to-slate-900/45 p-5 backdrop-blur-sm"
-                >
-                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-200">{item.title}</h3>
-                  <p className="text-sm text-slate-400">{item.copy}</p>
-                </div>
-              ))}
-            </div>
-          </motion.div>
+      <main className="relative mx-auto max-w-6xl px-4 pb-20 pt-20 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="mb-16 text-center"
+        >
+          <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[0.7rem] uppercase tracking-[0.35em] text-slate-300">
+            <Sparkles className="h-4 w-4 text-cyan-300" />
+            Powered by Gemini AI • GPT Researcher • Tavily
+          </div>
+          
+          <h1 className="mb-6 text-5xl font-semibold leading-tight text-slate-50 md:text-6xl">
+            Выберите режим работы
+          </h1>
+          
+          <p className="mx-auto max-w-2xl text-lg text-slate-400">
+            Универсальная платформа для анализа новостей: от финансовых рынков до персонализированной ленты
+          </p>
+        </motion.div>
 
+        <div className="grid gap-8 md:grid-cols-2">
+          {/* Financial RADAR Mode */}
           <motion.div
             initial={{ opacity: 0, y: 32 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.15 }}
-            className="relative"
+            transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <div className="absolute inset-0 -z-10 rounded-3xl bg-gradient-to-br from-cyan-500/25 via-blue-500/10 to-transparent blur-2xl" />
-            <ControlPanel onScan={handleScan} isLoading={isLoading} />
+            <Link href="/financial">
+              <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/8 via-slate-900/25 to-slate-900/45 p-8 backdrop-blur transition-all hover:border-cyan-500/40 hover:shadow-2xl hover:shadow-cyan-500/10">
+                <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/10 blur-3xl transition-all group-hover:scale-150" />
+                
+                <div className="relative">
+                  <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 shadow-lg shadow-cyan-500/25">
+                    <TrendingUp className="h-8 w-8 text-white" />
+                  </div>
+                  
+                  <h2 className="mb-3 text-3xl font-semibold text-slate-50">Financial RADAR</h2>
+                  
+                  <p className="mb-6 text-sm text-slate-400">
+                    Система выявления и оценки горячих новостей на финансовых рынках с детальной аналитикой по 5 критериям
+                  </p>
+                  
+                  <div className="mb-6 space-y-2">
+                    <div className="flex items-start gap-3">
+                      <Target className="mt-1 h-4 w-4 text-cyan-400" />
+                      <span className="text-sm text-slate-300">Многомерный скоринг "горячести"</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Target className="mt-1 h-4 w-4 text-cyan-400" />
+                      <span className="text-sm text-slate-300">Автоматический deep research</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Target className="mt-1 h-4 w-4 text-cyan-400" />
+                      <span className="text-sm text-slate-300">Готовые черновики публикаций</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-cyan-400 transition-all group-hover:gap-4">
+                    <span className="text-sm font-semibold uppercase tracking-wider">Запустить RADAR</span>
+                    <ArrowRight className="h-5 w-5" />
+                  </div>
+                </div>
+              </div>
+            </Link>
           </motion.div>
-        </section>
 
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              className="mb-12 rounded-2xl border border-rose-500/40 bg-rose-950/60 p-6 text-sm text-rose-200 backdrop-blur"
-            >
-              <div className="flex items-start gap-3">
-                <AlertCircle className="mt-0.5 h-5 w-5 text-rose-300" />
-                <div>
-                  <p className="font-semibold uppercase tracking-[0.28em] text-rose-200/80">Ошибка обработки</p>
-                  <p className="mt-1 text-rose-100/80">{error}</p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {data ? (
-          <section className="space-y-12">
-            <StatsDisplay
-              storyCount={data.stories.length}
-              articleCount={data.total_articles_processed}
-              processingTime={data.processing_time_seconds}
-              avgHotness={avgHotness}
-            />
-
-            {data.stories.length > 0 ? (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-                <div className="mb-10 flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-2xl font-semibold text-slate-100">Лента горячих сюжетов</h3>
-                    <p className="text-sm text-slate-500">
-                      Сформировано {new Date(data.generated_at).toLocaleString('ru-RU')} • приоритет по интегральному scoringu
-                    </p>
+          {/* Personal News Aggregator Mode */}
+          <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <Link href="/personal">
+              <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/8 via-slate-900/25 to-slate-900/45 p-8 backdrop-blur transition-all hover:border-purple-500/40 hover:shadow-2xl hover:shadow-purple-500/10">
+                <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/10 blur-3xl transition-all group-hover:scale-150" />
+                
+                <div className="relative">
+                  <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-400 via-pink-500 to-rose-600 shadow-lg shadow-purple-500/25">
+                    <Newspaper className="h-8 w-8 text-white" />
                   </div>
-                  <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.35em] text-slate-300">
-                    <Sparkle className="h-3.5 w-3.5 text-cyan-300" />
-                    {data.total_articles_processed} источников обработано
+                  
+                  <h2 className="mb-3 text-3xl font-semibold text-slate-50">Personal Aggregator</h2>
+                  
+                  <p className="mb-6 text-sm text-slate-400">
+                    Персонализированный агрегатор новостей с краткими описаниями и настраиваемыми источниками
+                  </p>
+                  
+                  <div className="mb-6 space-y-2">
+                    <div className="flex items-start gap-3">
+                      <Target className="mt-1 h-4 w-4 text-purple-400" />
+                      <span className="text-sm text-slate-300">Управление источниками RSS</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Target className="mt-1 h-4 w-4 text-purple-400" />
+                      <span className="text-sm text-slate-300">Фильтры по ключевым словам</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Target className="mt-1 h-4 w-4 text-purple-400" />
+                      <span className="text-sm text-slate-300">Краткие выжимки 2-3 предложения</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-purple-400 transition-all group-hover:gap-4">
+                    <span className="text-sm font-semibold uppercase tracking-wider">Запустить Агрегатор</span>
+                    <ArrowRight className="h-5 w-5" />
                   </div>
                 </div>
-
-                <div className="space-y-10">
-                  {data.stories.map((story, index) => (
-                    <StoryCard key={story.id} story={story} index={index} />
-                  ))}
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="rounded-3xl border border-white/10 bg-white/5 p-12 text-center backdrop-blur"
-              >
-                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/10">
-                  <LineChart className="h-7 w-7 text-slate-300" />
-                </div>
-                <h4 className="text-xl font-medium text-slate-100">Горячие сюжеты не обнаружены</h4>
-                <p className="mt-3 text-sm text-slate-400">
-                  Расширьте временное окно или снизьте порог горячести, чтобы увидеть более широкий спектр новостей.
-                </p>
-              </motion.div>
-            )}
-          </section>
-        ) : (
-          !isLoading && (
-            <motion.section
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="mt-6 rounded-3xl border border-white/10 bg-white/5 p-12 text-center backdrop-blur"
-            >
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/10">
-                <ShieldCheck className="h-7 w-7 text-cyan-300" />
               </div>
-              <h3 className="text-2xl font-semibold text-slate-100">Эталонный мониторинг готов к запуску</h3>
-              <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-400">
-                Настройте параметры сканирования справа, чтобы получить отранжированные события, детализированный таймлайн и готовые к коммуникациям материалы.
-              </p>
-            </motion.section>
-          )
-        )}
+            </Link>
+          </motion.div>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mt-16 rounded-3xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur"
+        >
+          <h3 className="mb-4 text-2xl font-semibold text-slate-100">Единая инфраструктура</h3>
+          <p className="mx-auto max-w-3xl text-sm text-slate-400">
+            Оба режима используют общие компоненты: сбор новостей из RSS и Tavily, дедупликацию статей, базу данных и историю обработки. 
+            Выберите финансовый режим для глубокого анализа рынков или персональный режим для быстрого обзора новостей из выбранных источников.
+          </p>
+        </motion.div>
       </main>
 
       <footer className="border-t border-white/10 bg-[#05070f]/80 py-10 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 text-[0.65rem] uppercase tracking-[0.32em] text-slate-500 lg:px-8">
-          <span>Radar Intelligence Platform</span>
-          <span className="text-slate-600">Gemini • GPT Researcher • Tavily Orchestration</span>
+          <span>News Intelligence Platform v2.0</span>
+          <span className="text-slate-600">Two Modes • One Infrastructure</span>
         </div>
       </footer>
     </div>

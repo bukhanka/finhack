@@ -64,3 +64,76 @@ export interface HealthResponse {
   google_api_configured: boolean;
 }
 
+export interface RadarRun {
+  id: number;
+  created_at: string;
+  time_window_hours: number;
+  total_articles_processed: number;
+  processing_time_seconds: number;
+  hotness_threshold: number;
+  top_k: number;
+  story_count: number;
+}
+
+export interface HistoryResponse {
+  history: RadarRun[];
+  limit: number;
+  offset: number;
+}
+
+export interface RunDetailsResponse extends RadarRun {
+  stories: NewsStory[];
+}
+
+// ============================================================================
+// Personal News Aggregator Types
+// ============================================================================
+
+export interface PersonalNewsItem {
+  id: string;
+  title: string;
+  summary: string;
+  url: string;
+  source: string;
+  published_at: string;
+  author?: string;
+  image_url?: string;
+  relevance_score: number;
+  matched_keywords: string[];
+  cluster_size: number;
+}
+
+export interface PersonalFeedResponse {
+  items: PersonalNewsItem[];
+  total_articles_processed: number;
+  filtered_count: number;
+  time_window_hours: number;
+  generated_at: string;
+  processing_time_seconds: number;
+  user_id?: string;
+}
+
+export interface UserPreferences {
+  user_id: string;
+  sources: string[];
+  keywords: string[];
+  excluded_keywords: string[];
+  categories: string[];
+  update_frequency_minutes: number;
+  max_articles_per_feed: number;
+  language: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PersonalScanRequest {
+  user_id?: string;
+  time_window_hours?: number;
+  custom_sources?: string[];
+}
+
+export interface RSSSource {
+  name: string;
+  url: string;
+}
+
